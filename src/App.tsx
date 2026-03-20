@@ -4,6 +4,7 @@ import CreateMatchScreen from "./screens/CreateMatchScreen";
 import JoinMatchScreen from "./screens/JoinMatchScreen";
 import GameScreen from "./screens/GameScreen";
 import type { AppScreen, LocalGameState } from "./types/game";
+import { applyGuess, normalizeSecretWord } from "./lib/game";
 
 function App() {
   const [screen, setScreen] = useState<AppScreen>("home");
@@ -20,7 +21,7 @@ function App() {
   function handleStartGame(roomCode: string, secretWord: string) {
     setGame({
       roomCode,
-      secretWord,
+      secretWord: normalizeSecretWord(secretWord),
       guessedLetters: [],
       wrongLetters: [],
       maxWrongGuesses: 6,
@@ -41,6 +42,13 @@ function App() {
     });
 
     setScreen("game");
+  }
+
+  function handleGuess(letter: string) {
+    setGame((currentGame) => {
+      if (!currentGame) return currentGame;
+      return applyGuess(currentGame, letter);
+    });
   }
 
   function handleBackToHome() {
@@ -76,7 +84,13 @@ function App() {
   }
 
   if (screen === "game" && game) {
-    return <GameScreen game={game} onBackToHome={handleBackToHome} />;
+    return (
+      <GameScreen
+        game={game}
+        onGuess={handleGuess}
+        onBackToHome={handleBackToHome}
+      />
+    );
   }
 
   return null;

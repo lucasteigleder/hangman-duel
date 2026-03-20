@@ -46,6 +46,11 @@ function CreateMatchScreen({ onBack, onStartGame }: CreateMatchScreenProps) {
             />
           </label>
 
+          <p style={{ margin: 0, fontSize: "0.95rem", opacity: 0.75 }}>
+            Im nächsten Schritt bauen wir den echten Online-Raum. Aktuell ist das
+            noch die lokale Testversion.
+          </p>
+
           <div style={{ display: "flex", gap: "1rem" }}>
             <button type="submit">Spiel starten</button>
             <button type="button" onClick={onBack}>
