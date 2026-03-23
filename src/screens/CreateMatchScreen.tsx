@@ -3,40 +3,35 @@ import ScreenContainer from "../components/ScreenContainer";
 
 type CreateMatchScreenProps = {
   onBack: () => void;
-  onStartGame: (roomCode: string, secretWord: string) => void;
+  onStartGame: (roomCode: string, secretWord: string) => void | Promise<void>;
 };
 
 function CreateMatchScreen({ onBack, onStartGame }: CreateMatchScreenProps) {
-  const [roomCode, setRoomCode] = useState("");
   const [secretWord, setSecretWord] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
 
-    const cleanRoomCode = roomCode.trim().toUpperCase();
     const cleanSecretWord = secretWord.trim().toUpperCase();
 
-    if (!cleanRoomCode || !cleanSecretWord) {
-      alert("Bitte Room-Code und Wort eingeben.");
+    if (!cleanSecretWord) {
+      alert("Bitte ein geheimes Wort eingeben.");
       return;
     }
 
-    onStartGame(cleanRoomCode, cleanSecretWord);
+    try {
+      setIsSubmitting(true);
+      await onStartGame("", cleanSecretWord);
+    } finally {
+      setIsSubmitting(false);
+    }
   }
 
   return (
     <ScreenContainer title="Match erstellen">
       <form onSubmit={handleSubmit}>
         <div style={{ display: "grid", gap: "1rem" }}>
-          <label>
-            <div>Room-Code</div>
-            <input
-              value={roomCode}
-              onChange={(e) => setRoomCode(e.target.value)}
-              placeholder="z. B. ABC123"
-            />
-          </label>
-
           <label>
             <div>Geheimes Wort</div>
             <input
@@ -47,13 +42,14 @@ function CreateMatchScreen({ onBack, onStartGame }: CreateMatchScreenProps) {
           </label>
 
           <p style={{ margin: 0, fontSize: "0.95rem", opacity: 0.75 }}>
-            Im nächsten Schritt bauen wir den echten Online-Raum. Aktuell ist das
-            noch die lokale Testversion.
+            Der Room-Code wird automatisch erstellt.
           </p>
 
           <div style={{ display: "flex", gap: "1rem" }}>
-            <button type="submit">Spiel starten</button>
-            <button type="button" onClick={onBack}>
+            <button type="submit" disabled={isSubmitting}>
+              {isSubmitting ? "Erstelle..." : "Spiel starten"}
+            </button>
+            <button type="button" onClick={onBack} disabled={isSubmitting}>
               Zurück
             </button>
           </div>

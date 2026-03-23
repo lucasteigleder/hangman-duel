@@ -4,7 +4,20 @@ import CreateMatchScreen from "./screens/CreateMatchScreen";
 import JoinMatchScreen from "./screens/JoinMatchScreen";
 import GameScreen from "./screens/GameScreen";
 import type { AppScreen, LocalGameState } from "./types/game";
-import { applyGuess, normalizeSecretWord } from "./lib/game";
+import { normalizeSecretWord } from "./lib/game";
+import { createRoom, getRoomByCode, type RoomRow } from "./lib/rooms";
+
+function mapRoomToGame(room: RoomRow): LocalGameState {
+  return {
+    roomId: room.id,
+    roomCode: room.room_code,
+    secretWord: room.host_secret_word,
+    guessedLetters: room.guessed_letters ?? [],
+    wrongLetters: room.wrong_letters ?? [],
+    maxWrongGuesses: room.max_wrong_guesses ?? 6,
+    phase: (room.phase as LocalGameState["phase"]) ?? "playing",
+  };
+}
 
 function App() {
   const [screen, setScreen] = useState<AppScreen>("home");
@@ -18,42 +31,41 @@ function App() {
     setScreen("join");
   }
 
-  function handleStartGame(roomCode: string, secretWord: string) {
-    setGame({
-      roomCode,
-      secretWord: normalizeSecretWord(secretWord),
-      guessedLetters: [],
-      wrongLetters: [],
-      maxWrongGuesses: 6,
-      phase: "playing",
-    });
-
-    setScreen("game");
+  async function handleStartGame(_: string, secretWord: string) {
+    try {
+      const room = await createRoom(normalizeSecretWord(secretWord));
+      setGame(mapRoomToGame(room));
+      setScreen("game");
+    } catch (error) {
+      console.error(error);
+      alert("Raum konnte nicht erstellt werden.");
+    }
   }
 
-  function handleJoinRoom(roomCode: string) {
-    setGame({
-      roomCode,
-      secretWord: "BEISPIEL",
-      guessedLetters: [],
-      wrongLetters: [],
-      maxWrongGuesses: 6,
-      phase: "playing",
-    });
+  async function handleJoinRoom(roomCode: string) {
+    try {
+      const room = await getRoomByCode(roomCode);
 
-    setScreen("game");
-  }
+      if (!room) {
+        alert("Kein Raum mit diesem Code gefunden.");
+        return;
+      }
 
-  function handleGuess(letter: string) {
-    setGame((currentGame) => {
-      if (!currentGame) return currentGame;
-      return applyGuess(currentGame, letter);
-    });
+      setGame(mapRoomToGame(room));
+      setScreen("game");
+    } catch (error) {
+      console.error(error);
+      alert("Raum konnte nicht geladen werden.");
+    }
   }
 
   function handleBackToHome() {
     setScreen("home");
     setGame(null);
+  }
+
+  function handleGuess(letter: string) {
+    console.log("Nächster Schritt: Guess online speichern", letter);
   }
 
   if (screen === "home") {

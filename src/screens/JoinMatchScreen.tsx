@@ -1,10 +1,9 @@
 import { useState } from "react";
 import ScreenContainer from "../components/ScreenContainer";
-import { getRoomByCode } from "../lib/rooms";
 
 type JoinMatchScreenProps = {
   onBack: () => void;
-  onJoin: (roomCode: string) => void;
+  onJoin: (roomCode: string) => void | Promise<void>;
 };
 
 function JoinMatchScreen({ onBack, onJoin }: JoinMatchScreenProps) {
@@ -23,19 +22,7 @@ function JoinMatchScreen({ onBack, onJoin }: JoinMatchScreenProps) {
 
     try {
       setIsChecking(true);
-
-      const room = await getRoomByCode(cleanRoomCode);
-
-      if (!room) {
-        alert("Kein Raum mit diesem Code gefunden.");
-        return;
-      }
-
-      alert(`Raum gefunden: ${room.room_code}`);
-      onJoin(cleanRoomCode);
-    } catch (error) {
-      console.error(error);
-      alert("Fehler beim Verbinden mit Supabase.");
+      await onJoin(cleanRoomCode);
     } finally {
       setIsChecking(false);
     }
@@ -58,7 +45,7 @@ function JoinMatchScreen({ onBack, onJoin }: JoinMatchScreenProps) {
             <button type="submit" disabled={isChecking}>
               {isChecking ? "Prüfe..." : "Beitreten"}
             </button>
-            <button type="button" onClick={onBack}>
+            <button type="button" onClick={onBack} disabled={isChecking}>
               Zurück
             </button>
           </div>
