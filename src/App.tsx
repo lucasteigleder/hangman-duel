@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import HomeScreen from "./screens/HomeScreen";
 import CreateMatchScreen from "./screens/CreateMatchScreen";
 import JoinMatchScreen from "./screens/JoinMatchScreen";
@@ -7,11 +7,12 @@ import type { AppScreen, LocalGameState } from "./types/game";
 import { normalizeSecretWord } from "./lib/game";
 import {
   createRoom,
-  getRoomByCode,
+  joinRoom,
   submitGuess,
   type RoomRow,
 } from "./lib/rooms";
 import { supabase } from "./lib/supabase";
+import { getOrCreatePlayerId } from "./lib/player";
 
 function mapRoomToGame(room: RoomRow): LocalGameState {
   return {
@@ -22,12 +23,22 @@ function mapRoomToGame(room: RoomRow): LocalGameState {
     wrongLetters: room.wrong_letters ?? [],
     maxWrongGuesses: room.max_wrong_guesses ?? 6,
     phase: (room.phase as LocalGameState["phase"]) ?? "playing",
+    hostPlayerId: room.host_player_id,
+    guestPlayerId: room.guest_player_id,
+    currentSetter: room.current_setter,
+    currentGuesser: room.current_guesser,
+    hostScore: room.host_score ?? 0,
+    guestScore: room.guest_score ?? 0,
+    roundNumber: room.round_number ?? 1,
+    roundStatus: room.round_status ?? "waiting_for_guesser",
   };
 }
 
 function App() {
   const [screen, setScreen] = useState<AppScreen>("home");
   const [game, setGame] = useState<LocalGameState | null>(null);
+
+  const playerId = useMemo(() => getOrCreatePlayerId(), []);
 
   useEffect(() => {
     if (!game?.roomCode || !supabase) return;
@@ -50,7 +61,7 @@ function App() {
       .subscribe();
 
     return () => {
-      supabase.removeChannel(channel);
+      void supabase.removeChannel(channel);
     };
   }, [game?.roomCode]);
 
@@ -64,7 +75,7 @@ function App() {
 
   async function handleStartGame(_: string, secretWord: string) {
     try {
-      const room = await createRoom(normalizeSecretWord(secretWord));
+      const room = await createRoom(normalizeSecretWord(secretWord), playerId);
       setGame(mapRoomToGame(room));
       setScreen("game");
     } catch (error) {
@@ -75,18 +86,12 @@ function App() {
 
   async function handleJoinRoom(roomCode: string) {
     try {
-      const room = await getRoomByCode(roomCode);
-
-      if (!room) {
-        alert("Kein Raum mit diesem Code gefunden.");
-        return;
-      }
-
+      const room = await joinRoom(roomCode, playerId);
       setGame(mapRoomToGame(room));
       setScreen("game");
     } catch (error) {
       console.error(error);
-      alert("Raum konnte nicht geladen werden.");
+      alert(error instanceof Error ? error.message : "Raum konnte nicht geladen werden.");
     }
   }
 
@@ -94,11 +99,11 @@ function App() {
     if (!game) return;
 
     try {
-      const updatedRoom = await submitGuess(game.roomCode, letter);
+      const updatedRoom = await submitGuess(game.roomCode, letter, playerId);
       setGame(mapRoomToGame(updatedRoom));
     } catch (error) {
       console.error(error);
-      alert("Buchstabe konnte nicht gespeichert werden.");
+      alert(error instanceof Error ? error.message : "Buchstabe konnte nicht gespeichert werden.");
     }
   }
 
@@ -138,6 +143,7 @@ function App() {
     return (
       <GameScreen
         game={game}
+        playerId={playerId}
         onGuess={handleGuess}
         onBackToHome={handleBackToHome}
       />

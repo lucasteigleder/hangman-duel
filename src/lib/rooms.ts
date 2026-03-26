@@ -11,6 +11,14 @@ export type RoomRow = {
   phase: string;
   created_at: string;
   updated_at: string;
+  host_player_id: string | null;
+  guest_player_id: string | null;
+  current_setter: string | null;
+  current_guesser: string | null;
+  host_score: number;
+  guest_score: number;
+  round_number: number;
+  round_status: string;
 };
 
 export function generateRoomCode(length = 6): string {
@@ -24,7 +32,7 @@ export function generateRoomCode(length = 6): string {
   return result;
 }
 
-export async function getRoomByCode(roomCode: string) {
+export async function getRoomByCode(roomCode: string): Promise<RoomRow | null> {
   if (!supabase) {
     throw new Error("Supabase ist noch nicht konfiguriert.");
   }
@@ -40,7 +48,10 @@ export async function getRoomByCode(roomCode: string) {
   return data as RoomRow | null;
 }
 
-export async function createRoom(secretWord: string) {
+export async function createRoom(
+  secretWord: string,
+  hostPlayerId: string
+): Promise<RoomRow> {
   if (!supabase) {
     throw new Error("Supabase ist noch nicht konfiguriert.");
   }
@@ -57,6 +68,14 @@ export async function createRoom(secretWord: string) {
         wrong_letters: [],
         max_wrong_guesses: 6,
         phase: "playing",
+        host_player_id: hostPlayerId,
+        guest_player_id: null,
+        current_setter: hostPlayerId,
+        current_guesser: null,
+        host_score: 0,
+        guest_score: 0,
+        round_number: 1,
+        round_status: "waiting_for_guesser",
       })
       .select("*")
       .single();
@@ -69,11 +88,66 @@ export async function createRoom(secretWord: string) {
   throw new Error("Raum konnte nicht erstellt werden.");
 }
 
-export async function submitGuess(roomCode: string, letter: string) {
+export async function joinRoom(
+  roomCode: string,
+  guestPlayerId: string
+): Promise<RoomRow> {
+  if (!supabase) {
+    throw new Error("Supabase ist noch nicht konfiguriert.");
+  }
+
   const room = await getRoomByCode(roomCode);
 
   if (!room) {
     throw new Error("Raum nicht gefunden.");
+  }
+
+  if (room.guest_player_id && room.guest_player_id !== guestPlayerId) {
+    throw new Error("Raum ist bereits voll.");
+  }
+
+  if (room.host_player_id === guestPlayerId) {
+    return room;
+  }
+
+  if (room.guest_player_id === guestPlayerId) {
+    return room;
+  }
+
+  const { data, error } = await supabase
+    .from("rooms")
+    .update({
+      guest_player_id: guestPlayerId,
+      current_guesser: guestPlayerId,
+      round_status: "playing",
+      updated_at: new Date().toISOString(),
+    })
+    .eq("room_code", roomCode)
+    .select("*")
+    .single();
+
+  if (error) throw error;
+
+  return data as RoomRow;
+}
+
+export async function submitGuess(
+  roomCode: string,
+  letter: string,
+  playerId: string
+): Promise<RoomRow> {
+  if (!supabase) {
+    throw new Error("Supabase ist noch nicht konfiguriert.");
+  }
+
+  const room = await getRoomByCode(roomCode);
+
+  if (!room) {
+    throw new Error("Raum nicht gefunden.");
+  }
+
+  if (room.current_guesser !== playerId) {
+    throw new Error("Du bist in dieser Runde nicht der Rater.");
   }
 
   const updatedGame = applyGuess(
@@ -85,13 +159,17 @@ export async function submitGuess(roomCode: string, letter: string) {
       wrongLetters: room.wrong_letters ?? [],
       maxWrongGuesses: room.max_wrong_guesses ?? 6,
       phase: (room.phase as "playing" | "won" | "lost") ?? "playing",
+      hostPlayerId: room.host_player_id,
+      guestPlayerId: room.guest_player_id,
+      currentSetter: room.current_setter,
+      currentGuesser: room.current_guesser,
+      hostScore: room.host_score ?? 0,
+      guestScore: room.guest_score ?? 0,
+      roundNumber: room.round_number ?? 1,
+      roundStatus: room.round_status ?? "playing",
     },
     letter
   );
-
-  if (!supabase) {
-    throw new Error("Supabase ist noch nicht konfiguriert.");
-  }
 
   const { data, error } = await supabase
     .from("rooms")

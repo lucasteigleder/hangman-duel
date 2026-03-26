@@ -1,24 +1,36 @@
 import { useMemo, useState } from "react";
 import ScreenContainer from "../components/ScreenContainer";
+import HangmanFigure from "../components/HangmanFigure";
 import type { LocalGameState } from "../types/game";
 import { getMaskedWord, normalizeLetter } from "../lib/game";
 
 type GameScreenProps = {
   game: LocalGameState;
+  playerId: string;
   onGuess: (letter: string) => void | Promise<void>;
   onBackToHome: () => void;
 };
 
-function GameScreen({ game, onGuess, onBackToHome }: GameScreenProps) {
+function GameScreen({
+  game,
+  playerId,
+  onGuess,
+  onBackToHome,
+}: GameScreenProps) {
   const [currentLetter, setCurrentLetter] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const maskedWord = useMemo(() => {
-    return getMaskedWord(game.secretWord, game.guessedLetters);
-  }, [game.secretWord, game.guessedLetters]);
-
-  const allTriedLetters = [...game.guessedLetters, ...game.wrongLetters];
+  const isSetter = game.currentSetter === playerId;
+  const isGuesser = game.currentGuesser === playerId;
   const isGameOver = game.phase === "won" || game.phase === "lost";
+
+  const maskedWord = useMemo(() => {
+    if (isSetter) {
+      return game.secretWord.split("").join(" ");
+    }
+
+    return getMaskedWord(game.secretWord, game.guessedLetters);
+  }, [game.secretWord, game.guessedLetters, isSetter]);
 
   async function handleGuess(e: React.FormEvent) {
     e.preventDefault();
@@ -46,10 +58,25 @@ function GameScreen({ game, onGuess, onBackToHome }: GameScreenProps) {
       </p>
 
       <p>
+        <strong>Runde:</strong> {game.roundNumber}
+      </p>
+
+      <p>
+        <strong>Deine Rolle:</strong>{" "}
+        {isSetter && "Wortgeber"}
+        {isGuesser && "Rater"}
+        {!isSetter && !isGuesser && "Zuschauer"}
+      </p>
+
+      <p>
         <strong>Status:</strong>{" "}
         {game.phase === "playing" && "Spiel läuft"}
-        {game.phase === "won" && "Gewonnen 🎉"}
-        {game.phase === "lost" && "Verloren 💀"}
+        {game.phase === "won" && "Wort erraten 🎉"}
+        {game.phase === "lost" && "Zu viele Fehler 💀"}
+      </p>
+
+      <p>
+        <strong>Punkte:</strong> Host {game.hostScore} : {game.guestScore} Guest
       </p>
 
       <p>
@@ -60,26 +87,27 @@ function GameScreen({ game, onGuess, onBackToHome }: GameScreenProps) {
         style={{
           fontSize: "2rem",
           letterSpacing: "0.3rem",
-          marginBottom: "1.5rem",
+          marginBottom: "1rem",
           fontWeight: 700,
         }}
       >
         {maskedWord}
       </div>
 
+      <HangmanFigure wrongGuessCount={game.wrongLetters.length} />
+
       <p>
         <strong>Richtige Buchstaben:</strong>{" "}
-        {game.guessedLetters.length > 0 ? game.guessedLetters.join(", ") : "keine"}
+        {game.guessedLetters.length > 0
+          ? game.guessedLetters.join(", ")
+          : "keine"}
       </p>
 
       <p>
         <strong>Falsche Buchstaben:</strong>{" "}
-        {game.wrongLetters.length > 0 ? game.wrongLetters.join(", ") : "keine"}
-      </p>
-
-      <p>
-        <strong>Alle Versuche:</strong>{" "}
-        {allTriedLetters.length > 0 ? allTriedLetters.join(", ") : "keine"}
+        {game.wrongLetters.length > 0
+          ? game.wrongLetters.join(", ")
+          : "keine"}
       </p>
 
       <p>
@@ -87,7 +115,7 @@ function GameScreen({ game, onGuess, onBackToHome }: GameScreenProps) {
         {game.maxWrongGuesses}
       </p>
 
-      {!isGameOver && (
+      {isGuesser && !isGameOver && (
         <form onSubmit={handleGuess} style={{ marginTop: "1.5rem" }}>
           <div style={{ display: "flex", gap: "1rem" }}>
             <input
@@ -104,15 +132,15 @@ function GameScreen({ game, onGuess, onBackToHome }: GameScreenProps) {
         </form>
       )}
 
-      {game.phase === "won" && (
+      {isSetter && !isGameOver && (
         <p style={{ marginTop: "1rem" }}>
-          Stark! Du hast das Wort <strong>{game.secretWord}</strong> erraten.
+          Du hast das Wort gesetzt. Der andere Spieler ist jetzt dran.
         </p>
       )}
 
-      {game.phase === "lost" && (
+      {!game.guestPlayerId && (
         <p style={{ marginTop: "1rem" }}>
-          Schade! Das gesuchte Wort war <strong>{game.secretWord}</strong>.
+          Warte darauf, dass ein zweiter Spieler dem Raum beitritt.
         </p>
       )}
 
