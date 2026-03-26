@@ -3,101 +3,167 @@ type HangmanFigureProps = {
 };
 
 function HangmanFigure({ wrongGuessCount }: HangmanFigureProps) {
-  const parts = {
-    head: wrongGuessCount >= 6,
-    body: wrongGuessCount >= 5,
-    leftArm: wrongGuessCount >= 3,
-    rightArm: wrongGuessCount >= 4,
-    leftLeg: wrongGuessCount >= 1,
-    rightLeg: wrongGuessCount >= 2,
-  };
+  const showHead = wrongGuessCount >= 1;
+  const showBody = wrongGuessCount >= 2;
+  const showLeftArm = wrongGuessCount >= 3;
+  const showRightArm = wrongGuessCount >= 4;
+  const showLeftLeg = wrongGuessCount >= 5;
+  const showRightLeg = wrongGuessCount >= 6;
 
   return (
     <div
       style={{
         position: "relative",
-        width: "220px",
-        height: "260px",
-        margin: "1.5rem 0",
+        width: "240px",
+        height: "320px",
+        margin: "1.5rem 0 2rem",
       }}
     >
-      <div style={{ position: "absolute", left: 20, bottom: 0, width: 120, height: 4, background: "#111" }} />
-      <div style={{ position: "absolute", left: 50, bottom: 0, width: 4, height: 220, background: "#111" }} />
-      <div style={{ position: "absolute", left: 50, top: 20, width: 100, height: 4, background: "#111" }} />
-      <div style={{ position: "absolute", left: 146, top: 20, width: 4, height: 30, background: "#111" }} />
+      {/* Boden */}
+      <div
+        style={{
+          position: "absolute",
+          left: 20,
+          bottom: 0,
+          width: 120,
+          height: 4,
+          background: "#222",
+          borderRadius: 2,
+        }}
+      />
 
-      {parts.head && (
+      {/* Mast */}
+      <div
+        style={{
+          position: "absolute",
+          left: 50,
+          bottom: 0,
+          width: 4,
+          height: 260,
+          background: "#222",
+          borderRadius: 2,
+        }}
+      />
+
+      {/* Querbalken */}
+      <div
+        style={{
+          position: "absolute",
+          left: 50,
+          top: 20,
+          width: 110,
+          height: 4,
+          background: "#222",
+          borderRadius: 2,
+        }}
+      />
+
+      {/* Seil */}
+      <div
+        style={{
+          position: "absolute",
+          left: 156,
+          top: 20,
+          width: 4,
+          height: 34,
+          background: "#222",
+          borderRadius: 2,
+        }}
+      />
+
+      {/* Kopf */}
+      {showHead && (
         <div
           style={{
             position: "absolute",
-            left: 125,
-            top: 50,
+            left: 138,
+            top: 54,
             width: 40,
             height: 40,
-            border: "4px solid #111",
+            border: "4px solid #222",
             borderRadius: "50%",
+            boxSizing: "border-box",
           }}
         />
       )}
 
-      {parts.body && (
-        <div style={{ position: "absolute", left: 145, top: 90, width: 4, height: 70, background: "#111" }} />
-      )}
-
-      {parts.leftArm && (
+      {/* Körper */}
+      {showBody && (
         <div
           style={{
             position: "absolute",
-            left: 120,
-            top: 110,
-            width: 30,
+            left: 156,
+            top: 94,
+            width: 4,
+            height: 78,
+            background: "#222",
+            borderRadius: 2,
+          }}
+        />
+      )}
+
+      {/* linker Arm */}
+      {showLeftArm && (
+        <div
+          style={{
+            position: "absolute",
+            left: 128,
+            top: 118,
+            width: 32,
             height: 4,
-            background: "#111",
-            transform: "rotate(-30deg)",
+            background: "#222",
+            borderRadius: 2,
+            transform: "rotate(-28deg)",
             transformOrigin: "right center",
           }}
         />
       )}
 
-      {parts.rightArm && (
+      {/* rechter Arm */}
+      {showRightArm && (
         <div
           style={{
             position: "absolute",
-            left: 148,
-            top: 110,
-            width: 30,
+            left: 158,
+            top: 118,
+            width: 32,
             height: 4,
-            background: "#111",
-            transform: "rotate(30deg)",
+            background: "#222",
+            borderRadius: 2,
+            transform: "rotate(28deg)",
             transformOrigin: "left center",
           }}
         />
       )}
 
-      {parts.leftLeg && (
+      {/* linkes Bein */}
+      {showLeftLeg && (
         <div
           style={{
             position: "absolute",
-            left: 123,
-            top: 175,
-            width: 30,
+            left: 130,
+            top: 190,
+            width: 34,
             height: 4,
-            background: "#111",
+            background: "#222",
+            borderRadius: 2,
             transform: "rotate(35deg)",
             transformOrigin: "right center",
           }}
         />
       )}
 
-      {parts.rightLeg && (
+      {/* rechtes Bein */}
+      {showRightLeg && (
         <div
           style={{
             position: "absolute",
-            left: 148,
-            top: 175,
-            width: 30,
+            left: 158,
+            top: 190,
+            width: 34,
             height: 4,
-            background: "#111",
+            background: "#222",
+            borderRadius: 2,
             transform: "rotate(-35deg)",
             transformOrigin: "left center",
           }}
