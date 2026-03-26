@@ -13,162 +13,93 @@ function HangmanFigure({ wrongGuessCount }: HangmanFigureProps) {
   return (
     <div
       style={{
-        position: "relative",
-        width: "240px",
-        height: "320px",
         margin: "1.5rem 0 2rem",
       }}
     >
-      {/* Boden */}
-      <div
-        style={{
-          position: "absolute",
-          left: 20,
-          bottom: 0,
-          width: 120,
-          height: 4,
-          background: "#222",
-          borderRadius: 2,
-        }}
-      />
+      <svg width="240" height="320" viewBox="0 0 240 320" aria-label="Galgenmännchen">
+        {/* Galgen */}
+        <line x1="20" y1="300" x2="140" y2="300" stroke="#222" strokeWidth="4" strokeLinecap="round" />
+        <line x1="50" y1="300" x2="50" y2="40" stroke="#222" strokeWidth="4" strokeLinecap="round" />
+        <line x1="50" y1="40" x2="160" y2="40" stroke="#222" strokeWidth="4" strokeLinecap="round" />
+        <line x1="160" y1="40" x2="160" y2="70" stroke="#222" strokeWidth="4" strokeLinecap="round" />
 
-      {/* Mast */}
-      <div
-        style={{
-          position: "absolute",
-          left: 50,
-          bottom: 0,
-          width: 4,
-          height: 260,
-          background: "#222",
-          borderRadius: 2,
-        }}
-      />
+        {/* Kopf */}
+        {showHead && (
+          <circle
+            cx="160"
+            cy="95"
+            r="24"
+            fill="none"
+            stroke="#222"
+            strokeWidth="4"
+          />
+        )}
 
-      {/* Querbalken */}
-      <div
-        style={{
-          position: "absolute",
-          left: 50,
-          top: 20,
-          width: 110,
-          height: 4,
-          background: "#222",
-          borderRadius: 2,
-        }}
-      />
+        {/* Körper */}
+        {showBody && (
+          <line
+            x1="160"
+            y1="119"
+            x2="160"
+            y2="185"
+            stroke="#222"
+            strokeWidth="4"
+            strokeLinecap="round"
+          />
+        )}
 
-      {/* Seil */}
-      <div
-        style={{
-          position: "absolute",
-          left: 156,
-          top: 20,
-          width: 4,
-          height: 34,
-          background: "#222",
-          borderRadius: 2,
-        }}
-      />
+        {/* linker Arm */}
+        {showLeftArm && (
+          <line
+            x1="160"
+            y1="140"
+            x2="128"
+            y2="158"
+            stroke="#222"
+            strokeWidth="4"
+            strokeLinecap="round"
+          />
+        )}
 
-      {/* Kopf */}
-      {showHead && (
-        <div
-          style={{
-            position: "absolute",
-            left: 138,
-            top: 54,
-            width: 40,
-            height: 40,
-            border: "4px solid #222",
-            borderRadius: "50%",
-            boxSizing: "border-box",
-          }}
-        />
-      )}
+        {/* rechter Arm */}
+        {showRightArm && (
+          <line
+            x1="160"
+            y1="140"
+            x2="192"
+            y2="158"
+            stroke="#222"
+            strokeWidth="4"
+            strokeLinecap="round"
+          />
+        )}
 
-      {/* Körper */}
-      {showBody && (
-        <div
-          style={{
-            position: "absolute",
-            left: 156,
-            top: 94,
-            width: 4,
-            height: 78,
-            background: "#222",
-            borderRadius: 2,
-          }}
-        />
-      )}
+        {/* linkes Bein */}
+        {showLeftLeg && (
+          <line
+            x1="160"
+            y1="185"
+            x2="132"
+            y2="215"
+            stroke="#222"
+            strokeWidth="4"
+            strokeLinecap="round"
+          />
+        )}
 
-      {/* linker Arm */}
-      {showLeftArm && (
-        <div
-          style={{
-            position: "absolute",
-            left: 128,
-            top: 118,
-            width: 32,
-            height: 4,
-            background: "#222",
-            borderRadius: 2,
-            transform: "rotate(-28deg)",
-            transformOrigin: "right center",
-          }}
-        />
-      )}
-
-      {/* rechter Arm */}
-      {showRightArm && (
-        <div
-          style={{
-            position: "absolute",
-            left: 158,
-            top: 118,
-            width: 32,
-            height: 4,
-            background: "#222",
-            borderRadius: 2,
-            transform: "rotate(28deg)",
-            transformOrigin: "left center",
-          }}
-        />
-      )}
-
-      {/* linkes Bein */}
-      {showLeftLeg && (
-        <div
-          style={{
-            position: "absolute",
-            left: 130,
-            top: 190,
-            width: 34,
-            height: 4,
-            background: "#222",
-            borderRadius: 2,
-            transform: "rotate(35deg)",
-            transformOrigin: "right center",
-          }}
-        />
-      )}
-
-      {/* rechtes Bein */}
-      {showRightLeg && (
-        <div
-          style={{
-            position: "absolute",
-            left: 158,
-            top: 190,
-            width: 34,
-            height: 4,
-            background: "#222",
-            borderRadius: 2,
-            transform: "rotate(-35deg)",
-            transformOrigin: "left center",
-          }}
-        />
-      )}
+        {/* rechtes Bein */}
+        {showRightLeg && (
+          <line
+            x1="160"
+            y1="185"
+            x2="188"
+            y2="215"
+            stroke="#222"
+            strokeWidth="4"
+            strokeLinecap="round"
+          />
+        )}
+      </svg>
     </div>
   );
 }
