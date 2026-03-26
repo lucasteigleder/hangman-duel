@@ -10,23 +10,36 @@ function ScreenContainer({ title, children }: ScreenContainerProps) {
     <main
       style={{
         minHeight: "100vh",
-        padding: "2rem",
-        fontFamily: "system-ui, sans-serif",
-        background: "#f5f7fb",
-        color: "#1f2937",
+        padding: "1.25rem",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
       }}
     >
       <div
         style={{
-          maxWidth: "700px",
-          margin: "0 auto",
-          background: "#ffffff",
-          borderRadius: "20px",
-          padding: "2rem",
-          boxShadow: "0 10px 30px rgba(0,0,0,0.08)",
+          width: "100%",
+          maxWidth: "760px",
+          background: "rgba(255, 255, 255, 0.92)",
+          border: "1px solid rgba(217, 227, 243, 0.9)",
+          borderRadius: "28px",
+          padding: "1.4rem",
+          boxShadow: "0 18px 50px rgba(37, 99, 235, 0.12)",
+          backdropFilter: "blur(10px)",
         }}
       >
-        <h1 style={{ marginTop: 0 }}>{title}</h1>
+        <div style={{ marginBottom: "1.2rem" }}>
+          <h1
+            style={{
+              fontSize: "clamp(1.7rem, 4vw, 2.4rem)",
+              lineHeight: 1.05,
+              marginBottom: "0.4rem",
+            }}
+          >
+            {title}
+          </h1>
+        </div>
+
         {children}
       </div>
     </main>

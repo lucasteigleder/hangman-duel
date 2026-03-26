@@ -98,153 +98,396 @@ function GameScreen({
 
   return (
     <ScreenContainer title="Spiel läuft">
-      <div
-        style={{
-          display: "flex",
-          gap: "0.75rem",
-          alignItems: "center",
-          flexWrap: "wrap",
-          marginBottom: "1rem",
-        }}
-      >
-        <p style={{ margin: 0 }}>
-          <strong>Room-Code:</strong> {game.roomCode}
-        </p>
+      <div style={{ display: "grid", gap: "1rem" }}>
+        <div
+          style={{
+            background: "#ffffff",
+            border: "1px solid #d9e3f3",
+            borderRadius: "22px",
+            padding: "1rem",
+            display: "grid",
+            gap: "0.9rem",
+          }}
+        >
+          <div
+            style={{
+              display: "flex",
+              gap: "0.75rem",
+              alignItems: "center",
+              justifyContent: "space-between",
+              flexWrap: "wrap",
+            }}
+          >
+            <div>
+              <div style={{ color: "#5b6475", fontSize: "0.9rem" }}>Room-Code</div>
+              <div style={{ fontSize: "1.35rem", fontWeight: 800, letterSpacing: "0.08em" }}>
+                {game.roomCode}
+              </div>
+            </div>
 
-        <button type="button" onClick={handleCopyRoomCode}>
-          {copySuccess ? "Kopiert!" : "Code kopieren"}
-        </button>
-      </div>
-
-      <p>
-        <strong>Runde:</strong> {game.roundNumber}
-      </p>
-
-      <p>
-        <strong>Wortgeber:</strong> {setterName}
-      </p>
-
-      <p>
-        <strong>Rater:</strong> {guesserName}
-      </p>
-
-      <p>
-        <strong>Du bist:</strong>{" "}
-        {isSetter && "Wortgeber"}
-        {isGuesser && "Rater"}
-        {!isSetter && !isGuesser && "Zuschauer"}
-      </p>
-
-      <p>
-        <strong>Status:</strong>{" "}
-        {game.phase === "playing" && "Spiel läuft"}
-        {game.phase === "won" && "Wort erraten 🎉"}
-        {game.phase === "lost" && "Zu viele Fehler 💀"}
-      </p>
-
-      <p>
-        <strong>Punkte:</strong> {game.hostName} {game.hostScore} : {game.guestScore} {game.guestName}
-      </p>
-
-      <p>
-        <strong>Wort:</strong>
-      </p>
-
-      <div
-        style={{
-          fontSize: "2rem",
-          letterSpacing: "0.3rem",
-          marginBottom: "1rem",
-          fontWeight: 700,
-        }}
-      >
-        {maskedWord}
-      </div>
-
-      <HangmanFigure wrongGuessCount={game.wrongLetters.length} />
-
-      <p>
-        <strong>Richtige Buchstaben:</strong>{" "}
-        {game.guessedLetters.length > 0
-          ? game.guessedLetters.join(", ")
-          : "keine"}
-      </p>
-
-      <p>
-        <strong>Falsche Buchstaben:</strong>{" "}
-        {game.wrongLetters.length > 0
-          ? game.wrongLetters.join(", ")
-          : "keine"}
-      </p>
-
-      <p>
-        <strong>Fehlversuche:</strong> {game.wrongLetters.length} /{" "}
-        {game.maxWrongGuesses}
-      </p>
-
-      {isGuesser && !isGameOver && (
-        <form onSubmit={handleGuess} style={{ marginTop: "1.5rem" }}>
-          <div style={{ display: "flex", gap: "1rem" }}>
-            <input
-              value={currentLetter}
-              onChange={(e) => setCurrentLetter(e.target.value)}
-              maxLength={1}
-              placeholder="A"
-              disabled={isSubmittingGuess}
-            />
-            <button type="submit" disabled={isSubmittingGuess}>
-              {isSubmittingGuess ? "Speichert..." : "Buchstaben raten"}
+            <button
+              type="button"
+              onClick={handleCopyRoomCode}
+              style={{
+                background: copySuccess ? "#dcfce7" : "#e8eefc",
+                color: "#0f172a",
+                fontWeight: 700,
+                minHeight: "48px",
+              }}
+            >
+              {copySuccess ? "Kopiert!" : "Code kopieren"}
             </button>
           </div>
-        </form>
-      )}
 
-      {isSetter && !isGameOver && (
-        <p style={{ marginTop: "1rem" }}>
-          Du hast das Wort gesetzt. {guesserName} ist jetzt dran.
-        </p>
-      )}
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))",
+              gap: "0.8rem",
+            }}
+          >
+            <div
+              style={{
+                background: "#f8fbff",
+                border: "1px solid #e2eaf7",
+                borderRadius: "18px",
+                padding: "0.9rem",
+              }}
+            >
+              <div style={{ color: "#5b6475", fontSize: "0.9rem" }}>Runde</div>
+              <div style={{ fontWeight: 800, fontSize: "1.25rem" }}>{game.roundNumber}</div>
+            </div>
 
-      {!game.guestPlayerId && (
-        <p style={{ marginTop: "1rem" }}>
-          Warte darauf, dass ein zweiter Spieler dem Raum beitritt.
-        </p>
-      )}
-
-      {game.roundStatus === "finished" && (
-        <div style={{ marginTop: "2rem" }}>
-          <h2 style={{ marginBottom: "0.75rem" }}>Nächste Runde</h2>
-
-          {canStartNextRound ? (
-            <form onSubmit={handleStartNextRound}>
-              <div style={{ display: "grid", gap: "1rem" }}>
-                <label>
-                  <div>Neues geheimes Wort</div>
-                  <input
-                    value={nextSecretWord}
-                    onChange={(e) => setNextSecretWord(e.target.value)}
-                    placeholder="z. B. BANANE"
-                    disabled={isSubmittingNextRound}
-                  />
-                </label>
-
-                <div>
-                  <button type="submit" disabled={isSubmittingNextRound}>
-                    {isSubmittingNextRound ? "Startet..." : "Neues Spiel"}
-                  </button>
-                </div>
+            <div
+              style={{
+                background: "#f8fbff",
+                border: "1px solid #e2eaf7",
+                borderRadius: "18px",
+                padding: "0.9rem",
+              }}
+            >
+              <div style={{ color: "#5b6475", fontSize: "0.9rem" }}>Status</div>
+              <div style={{ fontWeight: 800, fontSize: "1rem" }}>
+                {game.phase === "playing" && "Spiel läuft"}
+                {game.phase === "won" && "Wort erraten 🎉"}
+                {game.phase === "lost" && "Zu viele Fehler 💀"}
               </div>
-            </form>
-          ) : (
-            <p>
-              Warte darauf, dass {guesserName} das nächste Wort setzt.
-            </p>
-          )}
+            </div>
+          </div>
         </div>
-      )}
 
-      <div style={{ marginTop: "2rem" }}>
-        <button onClick={onBackToHome}>Zurück zur Startseite</button>
+        <div
+          style={{
+            background: "#ffffff",
+            border: "1px solid #d9e3f3",
+            borderRadius: "22px",
+            padding: "1rem",
+            display: "grid",
+            gap: "0.8rem",
+          }}
+        >
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))",
+              gap: "0.8rem",
+            }}
+          >
+            <div
+              style={{
+                background: "#f8fbff",
+                border: "1px solid #e2eaf7",
+                borderRadius: "18px",
+                padding: "0.9rem",
+              }}
+            >
+              <div style={{ color: "#5b6475", fontSize: "0.9rem" }}>Wortgeber</div>
+              <div style={{ fontWeight: 800 }}>{setterName}</div>
+            </div>
+
+            <div
+              style={{
+                background: "#f8fbff",
+                border: "1px solid #e2eaf7",
+                borderRadius: "18px",
+                padding: "0.9rem",
+              }}
+            >
+              <div style={{ color: "#5b6475", fontSize: "0.9rem" }}>Rater</div>
+              <div style={{ fontWeight: 800 }}>{guesserName}</div>
+            </div>
+
+            <div
+              style={{
+                background: isSetter ? "#dbeafe" : isGuesser ? "#dcfce7" : "#f8fbff",
+                border: "1px solid #e2eaf7",
+                borderRadius: "18px",
+                padding: "0.9rem",
+              }}
+            >
+              <div style={{ color: "#5b6475", fontSize: "0.9rem" }}>Du bist</div>
+              <div style={{ fontWeight: 800 }}>
+                {isSetter && "Wortgeber"}
+                {isGuesser && "Rater"}
+                {!isSetter && !isGuesser && "Zuschauer"}
+              </div>
+            </div>
+          </div>
+
+          <div
+            style={{
+              background: "#f8fbff",
+              border: "1px solid #e2eaf7",
+              borderRadius: "18px",
+              padding: "1rem",
+            }}
+          >
+            <div style={{ color: "#5b6475", fontSize: "0.9rem", marginBottom: "0.4rem" }}>
+              Punkte
+            </div>
+            <div style={{ fontWeight: 800, fontSize: "1.1rem" }}>
+              {game.hostName} {game.hostScore} : {game.guestScore} {game.guestName}
+            </div>
+          </div>
+        </div>
+
+        <div
+          style={{
+            background: "#ffffff",
+            border: "1px solid #d9e3f3",
+            borderRadius: "22px",
+            padding: "1rem",
+            display: "grid",
+            gap: "1rem",
+          }}
+        >
+          <div>
+            <div
+              style={{
+                color: "#5b6475",
+                fontSize: "0.9rem",
+                marginBottom: "0.45rem",
+              }}
+            >
+              Wort
+            </div>
+
+            <div
+              style={{
+                fontSize: "clamp(1.5rem, 5vw, 2.3rem)",
+                letterSpacing: "0.28rem",
+                fontWeight: 800,
+                lineHeight: 1.3,
+                wordBreak: "break-word",
+              }}
+            >
+              {maskedWord}
+            </div>
+          </div>
+
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "center",
+              background: "#f8fbff",
+              border: "1px solid #e2eaf7",
+              borderRadius: "20px",
+              padding: "0.5rem",
+            }}
+          >
+            <HangmanFigure wrongGuessCount={game.wrongLetters.length} />
+          </div>
+
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))",
+              gap: "0.8rem",
+            }}
+          >
+            <div
+              style={{
+                background: "#f8fbff",
+                border: "1px solid #e2eaf7",
+                borderRadius: "18px",
+                padding: "0.9rem",
+              }}
+            >
+              <div style={{ color: "#5b6475", fontSize: "0.9rem" }}>
+                Richtige Buchstaben
+              </div>
+              <div style={{ fontWeight: 700, marginTop: "0.35rem" }}>
+                {game.guessedLetters.length > 0
+                  ? game.guessedLetters.join(", ")
+                  : "keine"}
+              </div>
+            </div>
+
+            <div
+              style={{
+                background: "#fff7f7",
+                border: "1px solid #ffd6d6",
+                borderRadius: "18px",
+                padding: "0.9rem",
+              }}
+            >
+              <div style={{ color: "#5b6475", fontSize: "0.9rem" }}>
+                Falsche Buchstaben
+              </div>
+              <div style={{ fontWeight: 700, marginTop: "0.35rem" }}>
+                {game.wrongLetters.length > 0
+                  ? game.wrongLetters.join(", ")
+                  : "keine"}
+              </div>
+            </div>
+
+            <div
+              style={{
+                background: "#f8fbff",
+                border: "1px solid #e2eaf7",
+                borderRadius: "18px",
+                padding: "0.9rem",
+              }}
+            >
+              <div style={{ color: "#5b6475", fontSize: "0.9rem" }}>Fehlversuche</div>
+              <div style={{ fontWeight: 800, marginTop: "0.35rem" }}>
+                {game.wrongLetters.length} / {game.maxWrongGuesses}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {isGuesser && !isGameOver && (
+          <form
+            onSubmit={handleGuess}
+            style={{
+              background: "#ffffff",
+              border: "1px solid #d9e3f3",
+              borderRadius: "22px",
+              padding: "1rem",
+            }}
+          >
+            <div style={{ display: "grid", gap: "0.8rem" }}>
+              <div style={{ fontWeight: 700 }}>Dein Tipp</div>
+
+              <div
+                style={{
+                  display: "grid",
+                  gridTemplateColumns: "1fr auto",
+                  gap: "0.8rem",
+                }}
+              >
+                <input
+                  value={currentLetter}
+                  onChange={(e) => setCurrentLetter(e.target.value)}
+                  maxLength={1}
+                  placeholder="A"
+                  disabled={isSubmittingGuess}
+                />
+                <button
+                  type="submit"
+                  disabled={isSubmittingGuess}
+                  style={{
+                    background: "#2563eb",
+                    color: "#fff",
+                    fontWeight: 700,
+                    minWidth: "120px",
+                  }}
+                >
+                  {isSubmittingGuess ? "Speichert..." : "Raten"}
+                </button>
+              </div>
+            </div>
+          </form>
+        )}
+
+        {isSetter && !isGameOver && (
+          <div
+            style={{
+              background: "#fffbea",
+              border: "1px solid #f6e7b0",
+              borderRadius: "18px",
+              padding: "1rem",
+            }}
+          >
+            Du hast das Wort gesetzt. <strong>{guesserName}</strong> ist jetzt dran.
+          </div>
+        )}
+
+        {!game.guestPlayerId && (
+          <div
+            style={{
+              background: "#fffbea",
+              border: "1px solid #f6e7b0",
+              borderRadius: "18px",
+              padding: "1rem",
+            }}
+          >
+            Warte darauf, dass ein zweiter Spieler dem Raum beitritt.
+          </div>
+        )}
+
+        {game.roundStatus === "finished" && (
+          <div
+            style={{
+              background: "#ffffff",
+              border: "1px solid #d9e3f3",
+              borderRadius: "22px",
+              padding: "1rem",
+              display: "grid",
+              gap: "1rem",
+            }}
+          >
+            <h2 style={{ fontSize: "1.2rem" }}>Nächste Runde</h2>
+
+            {canStartNextRound ? (
+              <form onSubmit={handleStartNextRound}>
+                <div style={{ display: "grid", gap: "1rem" }}>
+                  <label>
+                    <div style={{ fontWeight: 600 }}>Neues geheimes Wort</div>
+                    <input
+                      value={nextSecretWord}
+                      onChange={(e) => setNextSecretWord(e.target.value)}
+                      placeholder="z. B. BANANE"
+                      disabled={isSubmittingNextRound}
+                    />
+                  </label>
+
+                  <div>
+                    <button
+                      type="submit"
+                      disabled={isSubmittingNextRound}
+                      style={{
+                        background: "#2563eb",
+                        color: "#fff",
+                        fontWeight: 700,
+                        minHeight: "52px",
+                      }}
+                    >
+                      {isSubmittingNextRound ? "Startet..." : "Neues Spiel"}
+                    </button>
+                  </div>
+                </div>
+              </form>
+            ) : (
+              <p style={{ margin: 0 }}>
+                Warte darauf, dass <strong>{guesserName}</strong> das nächste Wort setzt.
+              </p>
+            )}
+          </div>
+        )}
+
+        <button
+          onClick={onBackToHome}
+          style={{
+            background: "#e8eefc",
+            color: "#0f172a",
+            fontWeight: 700,
+            minHeight: "54px",
+          }}
+        >
+          Zurück zur Startseite
+        </button>
       </div>
     </ScreenContainer>
   );
