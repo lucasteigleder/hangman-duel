@@ -1,3 +1,4 @@
+import { applyGuess } from "./game";
 import { supabase } from "./supabase";
 
 export type RoomRow = {
@@ -66,4 +67,45 @@ export async function createRoom(secretWord: string) {
   }
 
   throw new Error("Raum konnte nicht erstellt werden.");
+}
+
+export async function submitGuess(roomCode: string, letter: string) {
+  const room = await getRoomByCode(roomCode);
+
+  if (!room) {
+    throw new Error("Raum nicht gefunden.");
+  }
+
+  const updatedGame = applyGuess(
+    {
+      roomId: room.id,
+      roomCode: room.room_code,
+      secretWord: room.host_secret_word,
+      guessedLetters: room.guessed_letters ?? [],
+      wrongLetters: room.wrong_letters ?? [],
+      maxWrongGuesses: room.max_wrong_guesses ?? 6,
+      phase: (room.phase as "playing" | "won" | "lost") ?? "playing",
+    },
+    letter
+  );
+
+  if (!supabase) {
+    throw new Error("Supabase ist noch nicht konfiguriert.");
+  }
+
+  const { data, error } = await supabase
+    .from("rooms")
+    .update({
+      guessed_letters: updatedGame.guessedLetters,
+      wrong_letters: updatedGame.wrongLetters,
+      phase: updatedGame.phase,
+      updated_at: new Date().toISOString(),
+    })
+    .eq("room_code", roomCode)
+    .select("*")
+    .single();
+
+  if (error) throw error;
+
+  return data as RoomRow;
 }

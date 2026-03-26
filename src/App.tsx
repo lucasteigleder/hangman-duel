@@ -1,11 +1,17 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import HomeScreen from "./screens/HomeScreen";
 import CreateMatchScreen from "./screens/CreateMatchScreen";
 import JoinMatchScreen from "./screens/JoinMatchScreen";
 import GameScreen from "./screens/GameScreen";
 import type { AppScreen, LocalGameState } from "./types/game";
 import { normalizeSecretWord } from "./lib/game";
-import { createRoom, getRoomByCode, type RoomRow } from "./lib/rooms";
+import {
+  createRoom,
+  getRoomByCode,
+  submitGuess,
+  type RoomRow,
+} from "./lib/rooms";
+import { supabase } from "./lib/supabase";
 
 function mapRoomToGame(room: RoomRow): LocalGameState {
   return {
@@ -22,6 +28,31 @@ function mapRoomToGame(room: RoomRow): LocalGameState {
 function App() {
   const [screen, setScreen] = useState<AppScreen>("home");
   const [game, setGame] = useState<LocalGameState | null>(null);
+
+  useEffect(() => {
+    if (!game?.roomCode || !supabase) return;
+
+    const channel = supabase
+      .channel(`room-${game.roomCode}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "UPDATE",
+          schema: "public",
+          table: "rooms",
+          filter: `room_code=eq.${game.roomCode}`,
+        },
+        (payload) => {
+          const updatedRoom = payload.new as RoomRow;
+          setGame(mapRoomToGame(updatedRoom));
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [game?.roomCode]);
 
   function handleCreateMatch() {
     setScreen("create");
@@ -59,13 +90,21 @@ function App() {
     }
   }
 
+  async function handleGuess(letter: string) {
+    if (!game) return;
+
+    try {
+      const updatedRoom = await submitGuess(game.roomCode, letter);
+      setGame(mapRoomToGame(updatedRoom));
+    } catch (error) {
+      console.error(error);
+      alert("Buchstabe konnte nicht gespeichert werden.");
+    }
+  }
+
   function handleBackToHome() {
     setScreen("home");
     setGame(null);
-  }
-
-  function handleGuess(letter: string) {
-    console.log("Nächster Schritt: Guess online speichern", letter);
   }
 
   if (screen === "home") {

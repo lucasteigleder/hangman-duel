@@ -5,20 +5,22 @@ import { getMaskedWord, normalizeLetter } from "../lib/game";
 
 type GameScreenProps = {
   game: LocalGameState;
-  onGuess: (letter: string) => void;
+  onGuess: (letter: string) => void | Promise<void>;
   onBackToHome: () => void;
 };
 
 function GameScreen({ game, onGuess, onBackToHome }: GameScreenProps) {
   const [currentLetter, setCurrentLetter] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const maskedWord = useMemo(() => {
     return getMaskedWord(game.secretWord, game.guessedLetters);
   }, [game.secretWord, game.guessedLetters]);
 
   const allTriedLetters = [...game.guessedLetters, ...game.wrongLetters];
+  const isGameOver = game.phase === "won" || game.phase === "lost";
 
-  function handleGuess(e: React.FormEvent) {
+  async function handleGuess(e: React.FormEvent) {
     e.preventDefault();
 
     const letter = normalizeLetter(currentLetter);
@@ -28,11 +30,14 @@ function GameScreen({ game, onGuess, onBackToHome }: GameScreenProps) {
       return;
     }
 
-    onGuess(letter);
-    setCurrentLetter("");
+    try {
+      setIsSubmitting(true);
+      await onGuess(letter);
+      setCurrentLetter("");
+    } finally {
+      setIsSubmitting(false);
+    }
   }
-
-  const isGameOver = game.phase === "won" || game.phase === "lost";
 
   return (
     <ScreenContainer title="Spiel läuft">
@@ -90,8 +95,11 @@ function GameScreen({ game, onGuess, onBackToHome }: GameScreenProps) {
               onChange={(e) => setCurrentLetter(e.target.value)}
               maxLength={1}
               placeholder="A"
+              disabled={isSubmitting}
             />
-            <button type="submit">Buchstaben raten</button>
+            <button type="submit" disabled={isSubmitting}>
+              {isSubmitting ? "Speichert..." : "Buchstaben raten"}
+            </button>
           </div>
         </form>
       )}
