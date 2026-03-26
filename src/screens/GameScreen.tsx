@@ -8,6 +8,7 @@ type GameScreenProps = {
   game: LocalGameState;
   playerId: string;
   onGuess: (letter: string) => void | Promise<void>;
+  onStartNextRound: (secretWord: string) => void | Promise<void>;
   onBackToHome: () => void;
 };
 
@@ -15,14 +16,18 @@ function GameScreen({
   game,
   playerId,
   onGuess,
+  onStartNextRound,
   onBackToHome,
 }: GameScreenProps) {
   const [currentLetter, setCurrentLetter] = useState("");
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [nextSecretWord, setNextSecretWord] = useState("");
+  const [isSubmittingGuess, setIsSubmittingGuess] = useState(false);
+  const [isSubmittingNextRound, setIsSubmittingNextRound] = useState(false);
 
   const isSetter = game.currentSetter === playerId;
   const isGuesser = game.currentGuesser === playerId;
   const isGameOver = game.phase === "won" || game.phase === "lost";
+  const canStartNextRound = game.roundStatus === "finished" && isGuesser;
 
   const maskedWord = useMemo(() => {
     if (isSetter) {
@@ -43,11 +48,30 @@ function GameScreen({
     }
 
     try {
-      setIsSubmitting(true);
+      setIsSubmittingGuess(true);
       await onGuess(letter);
       setCurrentLetter("");
     } finally {
-      setIsSubmitting(false);
+      setIsSubmittingGuess(false);
+    }
+  }
+
+  async function handleStartNextRound(e: React.FormEvent) {
+    e.preventDefault();
+
+    const cleanWord = nextSecretWord.trim().toUpperCase();
+
+    if (!cleanWord) {
+      alert("Bitte ein neues Wort eingeben.");
+      return;
+    }
+
+    try {
+      setIsSubmittingNextRound(true);
+      await onStartNextRound(cleanWord);
+      setNextSecretWord("");
+    } finally {
+      setIsSubmittingNextRound(false);
     }
   }
 
@@ -123,10 +147,10 @@ function GameScreen({
               onChange={(e) => setCurrentLetter(e.target.value)}
               maxLength={1}
               placeholder="A"
-              disabled={isSubmitting}
+              disabled={isSubmittingGuess}
             />
-            <button type="submit" disabled={isSubmitting}>
-              {isSubmitting ? "Speichert..." : "Buchstaben raten"}
+            <button type="submit" disabled={isSubmittingGuess}>
+              {isSubmittingGuess ? "Speichert..." : "Buchstaben raten"}
             </button>
           </div>
         </form>
@@ -142,6 +166,38 @@ function GameScreen({
         <p style={{ marginTop: "1rem" }}>
           Warte darauf, dass ein zweiter Spieler dem Raum beitritt.
         </p>
+      )}
+
+      {game.roundStatus === "finished" && (
+        <div style={{ marginTop: "2rem" }}>
+          <h2 style={{ marginBottom: "0.75rem" }}>Nächste Runde</h2>
+
+          {canStartNextRound ? (
+            <form onSubmit={handleStartNextRound}>
+              <div style={{ display: "grid", gap: "1rem" }}>
+                <label>
+                  <div>Neues geheimes Wort</div>
+                  <input
+                    value={nextSecretWord}
+                    onChange={(e) => setNextSecretWord(e.target.value)}
+                    placeholder="z. B. BANANE"
+                    disabled={isSubmittingNextRound}
+                  />
+                </label>
+
+                <div>
+                  <button type="submit" disabled={isSubmittingNextRound}>
+                    {isSubmittingNextRound ? "Startet..." : "Neues Spiel"}
+                  </button>
+                </div>
+              </div>
+            </form>
+          ) : (
+            <p>
+              Warte darauf, dass der bisherige Rater das nächste Wort setzt.
+            </p>
+          )}
+        </div>
       )}
 
       <div style={{ marginTop: "2rem" }}>

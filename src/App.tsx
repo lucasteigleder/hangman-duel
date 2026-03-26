@@ -8,6 +8,7 @@ import { normalizeSecretWord } from "./lib/game";
 import {
   createRoom,
   joinRoom,
+  startNextRound,
   submitGuess,
   type RoomRow,
 } from "./lib/rooms";
@@ -107,6 +108,22 @@ function App() {
     }
   }
 
+  async function handleStartNextRound(secretWord: string) {
+    if (!game) return;
+
+    try {
+      const updatedRoom = await startNextRound(
+        game.roomCode,
+        normalizeSecretWord(secretWord),
+        playerId
+      );
+      setGame(mapRoomToGame(updatedRoom));
+    } catch (error) {
+      console.error(error);
+      alert(error instanceof Error ? error.message : "Neues Spiel konnte nicht gestartet werden.");
+    }
+  }
+
   function handleBackToHome() {
     setScreen("home");
     setGame(null);
@@ -145,6 +162,7 @@ function App() {
         game={game}
         playerId={playerId}
         onGuess={handleGuess}
+        onStartNextRound={handleStartNextRound}
         onBackToHome={handleBackToHome}
       />
     );

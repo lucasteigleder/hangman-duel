@@ -171,12 +171,98 @@ export async function submitGuess(
     letter
   );
 
+  let nextHostScore = room.host_score ?? 0;
+  let nextGuestScore = room.guest_score ?? 0;
+  let nextRoundStatus = room.round_status ?? "playing";
+
+  if (updatedGame.phase === "won") {
+    if (room.current_guesser === room.host_player_id) {
+      nextHostScore += 1;
+    } else if (room.current_guesser === room.guest_player_id) {
+      nextGuestScore += 1;
+    }
+
+    nextRoundStatus = "finished";
+  }
+
+  if (updatedGame.phase === "lost") {
+    if (room.current_setter === room.host_player_id) {
+      nextHostScore += 1;
+    } else if (room.current_setter === room.guest_player_id) {
+      nextGuestScore += 1;
+    }
+
+    nextRoundStatus = "finished";
+  }
+
   const { data, error } = await supabase
     .from("rooms")
     .update({
       guessed_letters: updatedGame.guessedLetters,
       wrong_letters: updatedGame.wrongLetters,
       phase: updatedGame.phase,
+      host_score: nextHostScore,
+      guest_score: nextGuestScore,
+      round_status: nextRoundStatus,
+      updated_at: new Date().toISOString(),
+    })
+    .eq("room_code", roomCode)
+    .select("*")
+    .single();
+
+  if (error) throw error;
+
+  return data as RoomRow;
+}
+
+export async function startNextRound(
+  roomCode: string,
+  newSecretWord: string,
+  playerId: string
+): Promise<RoomRow> {
+  if (!supabase) {
+    throw new Error("Supabase ist noch nicht konfiguriert.");
+  }
+
+  const room = await getRoomByCode(roomCode);
+
+  if (!room) {
+    throw new Error("Raum nicht gefunden.");
+  }
+
+  if (!room.host_player_id || !room.guest_player_id) {
+    throw new Error("Es müssen zwei Spieler im Raum sein.");
+  }
+
+  if (room.round_status !== "finished") {
+    throw new Error("Die aktuelle Runde ist noch nicht beendet.");
+  }
+
+  const previousGuesser = room.current_guesser;
+  const previousSetter = room.current_setter;
+
+  if (!previousGuesser || !previousSetter) {
+    throw new Error("Rollen konnten nicht bestimmt werden.");
+  }
+
+  if (playerId !== previousGuesser) {
+    throw new Error("Nur der bisherige Rater darf das neue Spiel starten.");
+  }
+
+  const nextSetter = previousGuesser;
+  const nextGuesser = previousSetter;
+
+  const { data, error } = await supabase
+    .from("rooms")
+    .update({
+      host_secret_word: newSecretWord,
+      guessed_letters: [],
+      wrong_letters: [],
+      phase: "playing",
+      current_setter: nextSetter,
+      current_guesser: nextGuesser,
+      round_number: (room.round_number ?? 1) + 1,
+      round_status: "playing",
       updated_at: new Date().toISOString(),
     })
     .eq("room_code", roomCode)
