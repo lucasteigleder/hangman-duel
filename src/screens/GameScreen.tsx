@@ -23,6 +23,7 @@ function GameScreen({
   const [nextSecretWord, setNextSecretWord] = useState("");
   const [isSubmittingGuess, setIsSubmittingGuess] = useState(false);
   const [isSubmittingNextRound, setIsSubmittingNextRound] = useState(false);
+  const [copySuccess, setCopySuccess] = useState(false);
 
   const isSetter = game.currentSetter === playerId;
   const isGuesser = game.currentGuesser === playerId;
@@ -81,11 +82,39 @@ function GameScreen({
     }
   }
 
+  async function handleCopyRoomCode() {
+    try {
+      await navigator.clipboard.writeText(game.roomCode);
+      setCopySuccess(true);
+
+      window.setTimeout(() => {
+        setCopySuccess(false);
+      }, 1800);
+    } catch (error) {
+      console.error(error);
+      alert("Der Room-Code konnte nicht kopiert werden.");
+    }
+  }
+
   return (
     <ScreenContainer title="Spiel läuft">
-      <p>
-        <strong>Room-Code:</strong> {game.roomCode}
-      </p>
+      <div
+        style={{
+          display: "flex",
+          gap: "0.75rem",
+          alignItems: "center",
+          flexWrap: "wrap",
+          marginBottom: "1rem",
+        }}
+      >
+        <p style={{ margin: 0 }}>
+          <strong>Room-Code:</strong> {game.roomCode}
+        </p>
+
+        <button type="button" onClick={handleCopyRoomCode}>
+          {copySuccess ? "Kopiert!" : "Code kopieren"}
+        </button>
+      </div>
 
       <p>
         <strong>Runde:</strong> {game.roundNumber}
