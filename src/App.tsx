@@ -32,6 +32,8 @@ function mapRoomToGame(room: RoomRow): LocalGameState {
     guestScore: room.guest_score ?? 0,
     roundNumber: room.round_number ?? 1,
     roundStatus: room.round_status ?? "waiting_for_guesser",
+    hostName: room.host_name ?? "Host",
+    guestName: room.guest_name ?? "Guest",
   };
 }
 
@@ -74,9 +76,13 @@ function App() {
     setScreen("join");
   }
 
-  async function handleStartGame(_: string, secretWord: string) {
+  async function handleStartGame(playerName: string, secretWord: string) {
     try {
-      const room = await createRoom(normalizeSecretWord(secretWord), playerId);
+      const room = await createRoom(
+        normalizeSecretWord(secretWord),
+        playerId,
+        playerName.trim()
+      );
       setGame(mapRoomToGame(room));
       setScreen("game");
     } catch (error) {
@@ -85,9 +91,9 @@ function App() {
     }
   }
 
-  async function handleJoinRoom(roomCode: string) {
+  async function handleJoinRoom(roomCode: string, playerName: string) {
     try {
-      const room = await joinRoom(roomCode, playerId);
+      const room = await joinRoom(roomCode, playerId, playerName.trim());
       setGame(mapRoomToGame(room));
       setScreen("game");
     } catch (error) {

@@ -3,17 +3,24 @@ import ScreenContainer from "../components/ScreenContainer";
 
 type CreateMatchScreenProps = {
   onBack: () => void;
-  onStartGame: (roomCode: string, secretWord: string) => void | Promise<void>;
+  onStartGame: (playerName: string, secretWord: string) => void | Promise<void>;
 };
 
 function CreateMatchScreen({ onBack, onStartGame }: CreateMatchScreenProps) {
+  const [playerName, setPlayerName] = useState("");
   const [secretWord, setSecretWord] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
 
+    const cleanPlayerName = playerName.trim();
     const cleanSecretWord = secretWord.trim().toUpperCase();
+
+    if (!cleanPlayerName) {
+      alert("Bitte einen Namen eingeben.");
+      return;
+    }
 
     if (!cleanSecretWord) {
       alert("Bitte ein geheimes Wort eingeben.");
@@ -22,7 +29,7 @@ function CreateMatchScreen({ onBack, onStartGame }: CreateMatchScreenProps) {
 
     try {
       setIsSubmitting(true);
-      await onStartGame("", cleanSecretWord);
+      await onStartGame(cleanPlayerName, cleanSecretWord);
     } finally {
       setIsSubmitting(false);
     }
@@ -32,6 +39,15 @@ function CreateMatchScreen({ onBack, onStartGame }: CreateMatchScreenProps) {
     <ScreenContainer title="Match erstellen">
       <form onSubmit={handleSubmit}>
         <div style={{ display: "grid", gap: "1rem" }}>
+          <label>
+            <div>Dein Name</div>
+            <input
+              value={playerName}
+              onChange={(e) => setPlayerName(e.target.value)}
+              placeholder="z. B. Max"
+            />
+          </label>
+
           <label>
             <div>Geheimes Wort</div>
             <input

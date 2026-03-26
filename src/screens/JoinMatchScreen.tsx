@@ -3,26 +3,33 @@ import ScreenContainer from "../components/ScreenContainer";
 
 type JoinMatchScreenProps = {
   onBack: () => void;
-  onJoin: (roomCode: string) => void | Promise<void>;
+  onJoin: (roomCode: string, playerName: string) => void | Promise<void>;
 };
 
 function JoinMatchScreen({ onBack, onJoin }: JoinMatchScreenProps) {
   const [roomCode, setRoomCode] = useState("");
+  const [playerName, setPlayerName] = useState("");
   const [isChecking, setIsChecking] = useState(false);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
 
     const cleanRoomCode = roomCode.trim().toUpperCase();
+    const cleanPlayerName = playerName.trim();
 
     if (!cleanRoomCode) {
       alert("Bitte einen Room-Code eingeben.");
       return;
     }
 
+    if (!cleanPlayerName) {
+      alert("Bitte einen Namen eingeben.");
+      return;
+    }
+
     try {
       setIsChecking(true);
-      await onJoin(cleanRoomCode);
+      await onJoin(cleanRoomCode, cleanPlayerName);
     } finally {
       setIsChecking(false);
     }
@@ -32,6 +39,15 @@ function JoinMatchScreen({ onBack, onJoin }: JoinMatchScreenProps) {
     <ScreenContainer title="Match beitreten">
       <form onSubmit={handleSubmit}>
         <div style={{ display: "grid", gap: "1rem" }}>
+          <label>
+            <div>Dein Name</div>
+            <input
+              value={playerName}
+              onChange={(e) => setPlayerName(e.target.value)}
+              placeholder="z. B. Lena"
+            />
+          </label>
+
           <label>
             <div>Room-Code</div>
             <input

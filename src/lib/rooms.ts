@@ -19,6 +19,8 @@ export type RoomRow = {
   guest_score: number;
   round_number: number;
   round_status: string;
+  host_name: string | null;
+  guest_name: string | null;
 };
 
 export function generateRoomCode(length = 6): string {
@@ -50,7 +52,8 @@ export async function getRoomByCode(roomCode: string): Promise<RoomRow | null> {
 
 export async function createRoom(
   secretWord: string,
-  hostPlayerId: string
+  hostPlayerId: string,
+  hostName: string
 ): Promise<RoomRow> {
   if (!supabase) {
     throw new Error("Supabase ist noch nicht konfiguriert.");
@@ -76,6 +79,8 @@ export async function createRoom(
         guest_score: 0,
         round_number: 1,
         round_status: "waiting_for_guesser",
+        host_name: hostName,
+        guest_name: null,
       })
       .select("*")
       .single();
@@ -90,7 +95,8 @@ export async function createRoom(
 
 export async function joinRoom(
   roomCode: string,
-  guestPlayerId: string
+  guestPlayerId: string,
+  guestName: string
 ): Promise<RoomRow> {
   if (!supabase) {
     throw new Error("Supabase ist noch nicht konfiguriert.");
@@ -118,6 +124,7 @@ export async function joinRoom(
     .from("rooms")
     .update({
       guest_player_id: guestPlayerId,
+      guest_name: guestName,
       current_guesser: guestPlayerId,
       round_status: "playing",
       updated_at: new Date().toISOString(),
@@ -167,6 +174,8 @@ export async function submitGuess(
       guestScore: room.guest_score ?? 0,
       roundNumber: room.round_number ?? 1,
       roundStatus: room.round_status ?? "playing",
+      hostName: room.host_name ?? "Host",
+      guestName: room.guest_name ?? "Guest",
     },
     letter
   );

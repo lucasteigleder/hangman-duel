@@ -18,4 +18,6 @@ export interface LocalGameState {
   guestScore: number;
   roundNumber: number;
   roundStatus: string;
+  hostName: string;
+  guestName: string;
 }

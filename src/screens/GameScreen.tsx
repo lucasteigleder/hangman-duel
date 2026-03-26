@@ -29,6 +29,12 @@ function GameScreen({
   const isGameOver = game.phase === "won" || game.phase === "lost";
   const canStartNextRound = game.roundStatus === "finished" && isGuesser;
 
+  const setterName =
+    game.currentSetter === game.hostPlayerId ? game.hostName : game.guestName;
+
+  const guesserName =
+    game.currentGuesser === game.hostPlayerId ? game.hostName : game.guestName;
+
   const maskedWord = useMemo(() => {
     if (isSetter) {
       return game.secretWord.split("").join(" ");
@@ -86,7 +92,15 @@ function GameScreen({
       </p>
 
       <p>
-        <strong>Deine Rolle:</strong>{" "}
+        <strong>Wortgeber:</strong> {setterName}
+      </p>
+
+      <p>
+        <strong>Rater:</strong> {guesserName}
+      </p>
+
+      <p>
+        <strong>Du bist:</strong>{" "}
         {isSetter && "Wortgeber"}
         {isGuesser && "Rater"}
         {!isSetter && !isGuesser && "Zuschauer"}
@@ -100,7 +114,7 @@ function GameScreen({
       </p>
 
       <p>
-        <strong>Punkte:</strong> Host {game.hostScore} : {game.guestScore} Guest
+        <strong>Punkte:</strong> {game.hostName} {game.hostScore} : {game.guestScore} {game.guestName}
       </p>
 
       <p>
@@ -158,7 +172,7 @@ function GameScreen({
 
       {isSetter && !isGameOver && (
         <p style={{ marginTop: "1rem" }}>
-          Du hast das Wort gesetzt. Der andere Spieler ist jetzt dran.
+          Du hast das Wort gesetzt. {guesserName} ist jetzt dran.
         </p>
       )}
 
@@ -194,7 +208,7 @@ function GameScreen({
             </form>
           ) : (
             <p>
-              Warte darauf, dass der bisherige Rater das nächste Wort setzt.
+              Warte darauf, dass {guesserName} das nächste Wort setzt.
             </p>
           )}
         </div>
